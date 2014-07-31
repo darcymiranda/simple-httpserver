@@ -123,8 +123,9 @@ public class HttpServer implements Runnable {
             resourcePath = Paths.get(resourcePath + ".html");
         }
         else if(!resourcePath.toFile().exists()){
-            if(Paths.get(resourcePath + "/404.html").toFile().exists()) {
-                resourcePath = Paths.get(resourcePath + "/404.html");
+
+            if(Paths.get(ROOT_WEBSITE_DIR + "/404.html").toFile().exists()) {
+                resourcePath = Paths.get(ROOT_WEBSITE_DIR + "/404.html");
             }
             else{
                 return new HttpResponse(new HttpMessage(), HttpResponse.HttpResponseCode.NOT_FOUND);
