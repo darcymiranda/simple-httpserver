@@ -1,6 +1,8 @@
 package me.dmiranda.httpserver;
 
 
+import me.dmiranda.httpserver.managers.ReadOnlyResource;
+import me.dmiranda.httpserver.managers.ResourceManager;
 import me.dmiranda.httpserver.util.Log;
 
 import java.io.BufferedWriter;
@@ -15,9 +17,6 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 
 /**
@@ -33,7 +32,12 @@ public class HttpServer implements Runnable {
 
     private final String ROOT_WEBSITE_DIR = "website";
 
+    private ResourceManager resourceManager;
+
     public HttpServer(int port) throws IOException {
+
+        resourceManager = new ResourceManager(ROOT_WEBSITE_DIR);
+        resourceManager.loadFiles();
 
         serverSocket = ServerSocketChannel.open();
         selector = Selector.open();
@@ -110,29 +114,37 @@ public class HttpServer implements Runnable {
 
     private HttpResponse createResponse(HttpMessage message) throws IOException {
 
-        Path resourcePath = Paths.get(ROOT_WEBSITE_DIR + message.getHeader().getLocation());
+        String resourcePath = ROOT_WEBSITE_DIR + message.getHeader().getLocation();
+        HttpResponse.HttpResponseCode responseCode = HttpResponse.HttpResponseCode.NOT_FOUND;
+        ReadOnlyResource resource = null;
 
-        if(resourcePath.toString().contains("..")){
-            return new HttpResponse(new HttpMessage(), HttpResponse.HttpResponseCode.NOT_FOUND);
+        if(resourcePath.contains("..")){
+            return new HttpResponse(new HttpMessage(), responseCode);
         }
 
-        if(resourcePath.toString().equals(ROOT_WEBSITE_DIR)){
-            resourcePath = Paths.get(resourcePath + "/index.html");
+        if(resourceManager.exists(resourcePath)){
+            resource = resourceManager.getFile(resourcePath);
         }
-        else if(Paths.get(resourcePath + ".html").toFile().exists()){
-            resourcePath = Paths.get(resourcePath + ".html");
+        else if(resourcePath.equals(ROOT_WEBSITE_DIR + "/")){
+            resource = resourceManager.getFile(ROOT_WEBSITE_DIR + "/index.html");
         }
-        else if(!resourcePath.toFile().exists()){
+        else if(resourceManager.exists(resourcePath + ".html")){
+            resource = resourceManager.getFile(resourcePath + ".html");
+        }
+        else if(!resourceManager.exists(resourcePath)){
 
-            if(Paths.get(ROOT_WEBSITE_DIR + "/404.html").toFile().exists()) {
-                resourcePath = Paths.get(ROOT_WEBSITE_DIR + "/404.html");
+            if(resourceManager.exists(ROOT_WEBSITE_DIR + "/404.html")) {
+                resource = resourceManager.getFile(ROOT_WEBSITE_DIR + "/404.html");
             }
-            else{
-                return new HttpResponse(new HttpMessage(), HttpResponse.HttpResponseCode.NOT_FOUND);
-            }
         }
 
-        return new HttpResponse(new HttpMessage(Files.readAllBytes(resourcePath)), HttpResponse.HttpResponseCode.OK);
+        HttpMessage newMessage = new HttpMessage();
+        if(resource != null){
+            newMessage.setData(resource.read());
+            responseCode = HttpResponse.HttpResponseCode.OK;
+        }
+
+        return new HttpResponse(newMessage, responseCode);
     }
 
     public void close(){
