@@ -78,23 +78,21 @@ public class HttpClient {
 
         HttpMessage message = new HttpMessage(httpHeader, new byte[0]);
 
-        //Log.debug("Received", message.toString());
-
         return new HttpRequest(message);
     }
 
     public void sendResponse(HttpResponse response) throws IOException {
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(response.getResponseHeader() + "\n");
+        StringBuilder sbHeader = new StringBuilder();
+        sbHeader.append(response.getResponseHeader() + "\r\n");
         for(Map.Entry<String, String> header : response.getMessage().getHeader().getFields().entrySet()){
-            sb.append(header.getKey() + ": " + header.getValue() + "\n");
+            sbHeader.append(header.getKey() + ": " + header.getValue() + "\r\n");
         }
-        sb.append("\n");
+        sbHeader.append("\r\n");
 
-        channel.write(HttpServer.UTF8_ENCODER.encode(CharBuffer.wrap(sb)));
+        channel.write(HttpServer.UTF8_ENCODER.encode(CharBuffer.wrap(sbHeader.toString())));
+        //channel.write(ByteBuffer.wrap(sbHeader.toString().getBytes(StandardCharsets.US_ASCII)));
         channel.write(ByteBuffer.wrap(response.getMessage().getData()));
-        //Log.debug("Sent", sb.toString());
     }
 
     public void close() throws IOException {

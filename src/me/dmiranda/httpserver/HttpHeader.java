@@ -1,6 +1,8 @@
 package me.dmiranda.httpserver;
 
-import java.util.Date;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
 /**
@@ -28,7 +30,7 @@ public class HttpHeader {
     public void setDefaults(){
         version = "HTTP/1.1";
         fields.put("server", "simple-httpserver");
-        fields.put("date", new Date().toString());
+        fields.put("date", DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT"))));
     }
 
     public boolean isValid(){

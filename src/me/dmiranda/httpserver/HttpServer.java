@@ -140,7 +140,7 @@ public class HttpServer implements Runnable {
 
         HttpMessage newMessage = new HttpMessage();
         if(resource != null){
-            newMessage.setData(resource.read());
+            newMessage = new HttpMessage(resource.read());
             responseCode = HttpResponse.HttpResponseCode.OK;
         }
 
@@ -158,7 +158,7 @@ public class HttpServer implements Runnable {
 
     public static void main(String args[]) throws IOException, InterruptedException {
 
-        Log.set(Log.INFO);
+        Log.set(Log.DEBUG);
         HttpServer server = new HttpServer(args.length > 0 ? Integer.parseInt(args[0]) : 80);
 
         new File(server.ROOT_WEBSITE_DIR).mkdir();

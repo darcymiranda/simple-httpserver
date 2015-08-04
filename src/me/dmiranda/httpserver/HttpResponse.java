@@ -28,7 +28,7 @@ public class HttpResponse {
 
     static class HttpResponseCode {
 
-        static final HttpResponseCode OK = new HttpResponseCode("OK", 100);
+        static final HttpResponseCode OK = new HttpResponseCode("OK", 200);
         static final HttpResponseCode NOT_FOUND = new HttpResponseCode("Not Found", 404);
 
         public String status;
